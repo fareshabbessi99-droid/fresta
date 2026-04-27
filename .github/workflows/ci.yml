@@ -7,27 +7,27 @@ on:
     branches: [main, develop]
 
 jobs:
+
+  # ═══════════════════════════════════════
+  # ÉTAPE 1 — Tests HTML/CSS
+  # ═══════════════════════════════════════
   Code-Quality:
     name: Code Quality
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Récupérer le code
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2. Installer Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      # 3. Installer htmlhint
       - name: Install HTMLHint
         run: npm install -g htmlhint
 
-      # 4. Vérifier que src/ existe
-      - name: Check src folder
+      - name: Check src folder exists
         run: |
           if [ ! -d "src" ]; then
             echo "❌ Dossier src/ introuvable"
@@ -36,7 +36,6 @@ jobs:
           echo "✅ Dossier src/ trouvé"
           ls src/
 
-      # 5. Valider le HTML
       - name: Validate HTML
         run: |
           if ls src/*.html 1>/dev/null 2>&1; then
@@ -46,3 +45,61 @@ jobs:
             echo "❌ Aucun fichier HTML dans src/"
             exit 1
           fi
+
+  # ═══════════════════════════════════════
+  # ÉTAPE 2 — Build Docker
+  # ═══════════════════════════════════════
+  Build:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+    needs: Code-Quality
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/fresta:${{ github.sha }} .
+          echo "✅ Image construite"
+
+      - name: Test container startup
+        run: |
+          docker run -d -p 80:80 --name test-container \
+            ${{ secrets.DOCKER_USERNAME }}/fresta:${{ github.sha }}
+          sleep 5
+          curl -f http://localhost:80 || exit 1
+          echo "✅ Site répond sur port 80"
+          docker stop test-container
+          docker rm test-container
+
+      - name: Show image size
+        run: docker images
+
+  # ═══════════════════════════════════════
+  # ÉTAPE 3 — Security Scan (Bonus)
+  # ═══════════════════════════════════════
+  Security:
+    name: Security Scan Trivy
+    runs-on: ubuntu-latest
+    needs: Build
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build image for scan
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/fresta:${{ github.sha }} .
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ secrets.DOCKER_USERNAME }}/fresta:${{ github.sha }}
+          format: table
+          exit-code: '0'
+          severity: 'CRITICAL,HIGH'
+          ignore-unfixed: true
