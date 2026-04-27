@@ -1,38 +1,45 @@
-version: "3.9"
+version: '3.9'
 
 services:
 
-  # ── Main service: the application ─────────────
-  taskflow:
-    build:
-      context: .
-      dockerfile: Dockerfile
-
-    container_name: taskflow-app
-
+  # ─── Service principal : site web ───────────────────────────────────────
+  web:
+    build: .
+    container_name: ds2-web
     ports:
-      - "${APP_PORT:-3000}:80"
-
-    environment:
-      - NODE_ENV=${NODE_ENV:-development}
-
+      - "80:80"
     volumes:
-      - taskflow-web:/usr/share/nginx/html
-
-    restart: unless-stopped
-
-    healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost"]
-      interval: 30s
-      timeout:  5s
-      retries:  3
-
+      - ./src:/usr/share/nginx/html:ro
     networks:
-      - taskflow-network
-volumes:
-  taskflow-web:
-    driver: local
+      - app-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:80"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
 
+  # ─── Service bonus : visualiseur de logs ────────────────────────────────
+  logs:
+    image: python:3.11-alpine
+    container_name: ds2-logs
+    working_dir: /app
+    volumes:
+      - ./logs:/app/logs
+    ports:
+      - "8080:8080"
+    command: python -m http.server 8080
+    networks:
+      - app-net
+    restart: unless-stopped
+    depends_on:
+      - web
+
+# ─── Réseau partagé entre les services ──────────────────────────────────
 networks:
-  taskflow-network:
+  app-net:
     driver: bridge
+
+# ─── Volume persistant pour les logs ────────────────────────────────────
+volumes:
+  logs-data:
