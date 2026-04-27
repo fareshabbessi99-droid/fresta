@@ -1,0 +1,18 @@
+name: CI/CD Pipeline
+on:
+push:
+branches: [ main ]
+jobs:
+build-push:
+runs-on: ubuntu-latest
+steps:
+- uses: actions/checkout@v4
+- uses: docker/login-action@v3
+with:
+username: ${{ secrets.fresta45 }}
+password: ${{ secrets.dckr_pat_vRerjNWhvnRB3SUCb-WGi30ntSE}}
+- uses: docker/build-push-action@v5
+with:
+context: .
+push: true
+tags: ${{ secrets.fresta45 }}/mon-app:latest
