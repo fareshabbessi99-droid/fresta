@@ -1,36 +1,57 @@
-# Gestion des conflits Git
+# Mon Mini-Site Web — DS2
 
-## Cause du conflit
-Un conflit Git est survenu lorsque deux branches ont modifié **la même ligne** dans le fichier `index.html`.  
-Git ne pouvait pas savoir quelle modification garder.
+> Projet Docker & CI/CD — Industrialisation et automatisation du déploiement continu
 
-## Méthode de résolution
-- Nous avons ouvert le fichier conflictuelle.  
-- Nous avons fusionné manuellement les changements nécessaires.  
-- Nous avons ensuite ajouté (`git add`) et commit (`git commit`) pour finaliser le merge.
-- # DS1 : Projet GIT/GitHub
+## Prérequis
 
-## Description
-Ce projet est un site web développé dans le cadre du DS1.  
-Il comprend plusieurs pages : `index.html`, `exercises.html`, `contact.html` et des scripts JS/CSS associés.  
-Le projet utilise Git et GitHub pour la gestion de version et le travail collaboratif.
+Avant de lancer le projet, assure-toi d'avoir installé les outils suivants :
 
-## Branches
-- **main** : version stable du projet
-- **develop** : branche d’intégration
-- **feature-homepage** : développement de la page d’accueil
-- **feature-contact-page** : développement de la page de contact
-- **feature-navbar** : barre de navigation responsive
-- **feature-footer** : footer
-- **feature-js** : optimisation des scripts JS
+| Outil | Version minimale | Lien de téléchargement |
+|---|---|---|
+| Docker Desktop | 24.0+ | https://www.docker.com/products/docker-desktop |
+| Docker Compose | 2.0+ (inclus dans Docker Desktop) | — |
+| Git | 2.40+ | https://git-scm.com |
 
-## Workflow Git
-- Chaque étudiant travaille sur sa branche locale
-- Les commits doivent être clairs :
-  - `feat:` pour les nouvelles fonctionnalités
-  - `fix:` pour corriger des bugs
-  - `update:` pour les améliorations
-- Synchronisation régulière avec develop :
+### Vérifier les versions installées
+
 ```bash
-git pull origin develop
-git merge develop
+docker --version        # Docker version 24.x.x
+docker compose version  # Docker Compose version v2.x.x
+git --version           # git version 2.x.x
+```
+
+## Lancer le projet
+
+```bash
+# 1. Cloner le dépôt
+git clone https://github.com/ton-username/ton-repo.git
+cd ton-repo
+
+# 2. Lancer les conteneurs
+docker-compose up --build
+
+# 3. Ouvrir dans le navigateur
+# http://localhost:80
+```
+
+## Arrêter le projet
+
+```bash
+docker-compose down
+```
+
+## Structure du projet
+## CI/CD
+
+Le pipeline GitHub Actions se déclenche automatiquement à chaque push
+sur `main` et `develop`, ainsi qu'à chaque Pull Request.
+
+**Étapes du pipeline :**
+1. Validation HTML/CSS
+2. Build de l'image Docker
+3. Scan de sécurité (Trivy)
+
+## Auteurs
+
+- Prénom Nom — [@github-username](https://github.com/github-username)
+- Prénom Nom — [@github-username](https://github.com/github-username)
