@@ -1,29 +1,45 @@
-name: CI
+name: CI/CD Pipeline - DS2
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+      - develop
   pull_request:
-    branches: [main]
+    branches:
+      - main
+      - develop
 
 jobs:
-  code-quality:
+  Code-Quality:
     name: Code Quality
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout du code
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      # Test 1 — Validation HTML
-      - name: Valider les fichiers HTML
-        uses: Cyb3r-Jak3/html5validator-action@v7.2.0
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          root: .
-          css: false
+          node-version: '20'
 
-      # Test 2 — Validation CSS
-    #   - name: Valider les fichiers CSS
-    #     uses: anishathalye/proof-html@v2
-    #     with:
-    #       directory: .
+      - name: Install HTMLHint
+        run: npm install -g htmlhint
+
+      - name: Check src folder exists
+        run: |
+          if [ ! -d "src" ]; then
+            echo "❌ Dossier src/ introuvable"
+            exit 1
+          fi
+          echo "✅ Dossier src/ trouvé"
+
+      - name: Validate HTML
+        run: |
+          if ls src/*.html 1>/dev/null 2>&1; then
+            htmlhint "src/**/*.html"
+          else
+            echo "❌ Aucun fichier HTML dans src/"
+            exit 1
+          fi
